@@ -11,43 +11,53 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 // अपलोड फोल्डर
-if (!fs.existsSync('uploads')) {
-    fs.mkdirSync('uploads');
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 const storage = multer.diskStorage({
-    destination: 'uploads/',
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
+    destination: (req, file, cb) => cb(null, uploadDir),
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '_'))
 });
-const upload = multer({ storage });
+const upload = multer({ 
+    storage,
+    limits: { fileSize: 50 * 1024 * 1024 }
+});
 
-// रेट लिस्ट
+// आपके नए रेट (B&W = ₹5, Color = ₹10)
 const RATES = {
-    bw_single: 2,   // ₹2 प्रति B&W पेज
-    color: 10       // ₹10 प्रति कलर पेज
+    bw_single: 5,   // ब्लैक & व्हाइट ₹5 प्रति पेज
+    color: 10       // कलर ₹10 प्रति पेज
 };
 
 let orders = [];
 let tokenCounter = 101;
 
-// बिलिंग और पेज कैलकुलेटर
+// बिलिंग API
 app.post('/api/upload-and-calculate', upload.single('document'), async (req, res) => {
     try {
-        if (!req.file) return res.status(400).json({ error: 'फाइल नहीं मिली' });
+        if (!req.file) {
+            return res.status(400).json({ success: false, error: 'फाइल अपलोड नहीं हुई' });
+        }
 
         const printType = req.body.printType || 'bw_single';
         const copies = parseInt(req.body.copies) || 1;
         let totalPages = 1;
 
-        if (req.file.mimetype === 'application/pdf') {
-            const dataBuffer = fs.readFileSync(req.file.path);
-            const pdfData = await pdfParse(dataBuffer);
-            totalPages = pdfData.numpages || 1;
+        if (req.file.mimetype === 'application/pdf' || req.file.originalname.toLowerCase().endsWith('.pdf')) {
+            try {
+                const dataBuffer = fs.readFileSync(req.file.path);
+                const pdfData = await pdfParse(dataBuffer);
+                if (pdfData && pdfData.numpages) {
+                    totalPages = pdfData.numpages;
+                }
+            } catch (pdfErr) {
+                totalPages = 1;
+            }
         }
 
-        let ratePerPage = RATES[printType] || 2;
+        let ratePerPage = RATES[printType] || 5;
         let totalAmount = totalPages * ratePerPage * copies;
 
         res.json({
@@ -57,14 +67,15 @@ app.post('/api/upload-and-calculate', upload.single('document'), async (req, res
             totalPages,
             ratePerPage,
             copies,
-            totalAmount
+            totalAmount,
+            printType
         });
     } catch (err) {
-        res.status(500).json({ error: 'फाइल प्रोसेस करने में त्रुटि' });
+        res.status(500).json({ success: false, error: 'फाइल प्रोसेस करने में समस्या आई' });
     }
 });
 
-// पेमेंट के बाद ऑर्डर कन्फर्म करना
+// ऑर्डर कन्फर्म API
 app.post('/api/confirm-order', (req, res) => {
     const { fileId, originalName, totalPages, printType, copies, totalAmount, customerName, customerPhone } = req.body;
 
@@ -72,10 +83,10 @@ app.post('/api/confirm-order', (req, res) => {
         tokenNo: tokenCounter++,
         fileId,
         originalName,
-        totalPages,
-        printType,
-        copies,
-        totalAmount,
+        totalPages: totalPages || 1,
+        printType: printType || 'bw_single',
+        copies: copies || 1,
+        totalAmount: totalAmount || 0,
         customerName: customerName || 'ग्राहक',
         customerPhone: customerPhone || 'N/A',
         createdAt: new Date().toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' })
@@ -85,14 +96,14 @@ app.post('/api/confirm-order', (req, res) => {
     res.json({ success: true, order: newOrder });
 });
 
-// डैशबोर्ड ऑर्डर्स
+// डैशबोर्ड ऑर्डर्स API
 app.get('/api/admin/orders', (req, res) => {
     res.json(orders);
 });
 
-// फाइल डाउनलोड
+// डाउनलोड API
 app.get('/api/download/:fileId', (req, res) => {
-    const filePath = path.join(__dirname, 'uploads', req.params.fileId);
+    const filePath = path.join(uploadDir, req.params.fileId);
     if (fs.existsSync(filePath)) {
         res.download(filePath);
     } else {
@@ -100,7 +111,7 @@ app.get('/api/download/:fileId', (req, res) => {
     }
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log("SIDDIQUI SAHAJ Server Running at: http://localhost:3000");
+    console.log(SIDDIQUI SAHAJ Server Running on port ${PORT});
 });
