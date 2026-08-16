@@ -98,24 +98,22 @@
     </div>
 
     <script>
-        // अपनी दुकान की UPI ID यहाँ बदलें:
-        const SHOP_UPI_ID = "9415445067@ptsbi"; 
-        const SHOP_NAME = "SIDDIQUI SAHAJ";
-
-        let currentOrderData = null;
+        var SHOP_UPI_ID = "9415445067@ptsbi";
+        var SHOP_NAME = "SIDDIQUI SAHAJ";
+        var currentOrderData = null;
 
         function uploadDocument() {
-            const fileInput = document.getElementById('fileInput');
-            if (!fileInput.files[0]) {
+            var fileInput = document.getElementById('fileInput');
+            if (!fileInput.files || fileInput.files.length === 0) {
                 alert('कृपया कोई फाइल चुनें!');
                 return;
             }
 
-            const uploadBtn = document.getElementById('uploadBtn');
-            uploadBtn.innerText = 'गिनती हो रही है... कृपया रुकें';
+            var uploadBtn = document.getElementById('uploadBtn');
+            uploadBtn.innerText = 'गिनती हो रही है... रुकें';
             uploadBtn.disabled = true;
 
-            const formData = new FormData();
+            var formData = new FormData();
             formData.append('document', fileInput.files[0]);
             formData.append('printType', document.getElementById('printType').value);
             formData.append('copies', document.getElementById('copies').value);
@@ -124,8 +122,8 @@
                 method: 'POST',
                 body: formData
             })
-            .then(res => res.json())
-            .then(data => {
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
                 uploadBtn.innerText = 'पेज गिनें और बिल देखें';
                 uploadBtn.disabled = false;
 
@@ -135,30 +133,24 @@
                     document.getElementById('billPages').innerText = data.totalPages + ' पेज × ' + data.copies;
                     document.getElementById('billTotal').innerText = '₹' + data.totalAmount;
                     
-                    // Dynamic UPI QR Code जेनरेट करें
-                    generateQR(data.totalAmount);
+                    var upiUrl = 'upi://pay?pa=' + encodeURIComponent(SHOP_UPI_ID) + '&pn=' + encodeURIComponent(SHOP_NAME) + '&am=' + encodeURIComponent(data.totalAmount) + '&cu=INR';
+                    document.getElementById('qrImage').src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(upiUrl);
 
                     document.getElementById('billSection').classList.remove('hidden');
                 } else {
-                    alert('समस्या: ' + (data.error || 'फाइल प्रोसेस नहीं हो सकी'));
+                    alert('समस्या: ' + (data.error || 'पेज नहीं गिने जा सके'));
                 }
             })
-            .catch(err => {
+            .catch(function(err) {
                 uploadBtn.innerText = 'पेज गिनें और बिल देखें';
                 uploadBtn.disabled = false;
-                alert('सर्वर से संपर्क नहीं हो पाया!');
+                alert('सर्वर से संपर्क नहीं हो पाया। Render चालू होने में 30 सेकंड लग सकते हैं, दोबारा कोशिश करें।');
             });
         }
 
-        function generateQR(amount) {
-            const upiUrl = upi://pay?pa=${SHOP_UPI_ID}&pn=${encodeURIComponent(SHOP_NAME)}&am=${amount}&cu=INR;
-            const qrApi = https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)};
-            document.getElementById('qrImage').src = qrApi;
-        }
-
         function togglePaymentMode() {
-            const mode = document.getElementById('paymentMode').value;
-            const upiBox = document.getElementById('upiBox');
+            var mode = document.getElementById('paymentMode').value;
+            var upiBox = document.getElementById('upiBox');
             if (mode === 'cash') {
                 upiBox.classList.add('hidden');
             } else {
@@ -169,11 +161,11 @@
         function confirmOrder() {
             if (!currentOrderData) return;
 
-            const confirmBtn = document.getElementById('confirmBtn');
+            var confirmBtn = document.getElementById('confirmBtn');
             confirmBtn.innerText = 'ऑर्डर भेजा जा रहा है...';
             confirmBtn.disabled = true;
 
-            const payload = {
+            var payload = {
                 customerName: document.getElementById('custName').value.trim() || 'ग्राहक',
                 customerPhone: document.getElementById('custPhone').value.trim() || '-',
                 originalName: currentOrderData.originalName,
@@ -190,8 +182,8 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             })
-            .then(res => res.json())
-            .then(res => {
+            .then(function(res) { return res.json(); })
+            .then(function(res) {
                 if (res.success) {
                     document.getElementById('uploadSection').classList.add('hidden');
                     document.getElementById('billSection').classList.add('hidden');
@@ -201,7 +193,9 @@
                     alert('ऑर्डर दर्ज नहीं हो सका');
                 }
             })
-            .catch(() => alert('ऑर्डर सबमिट करने में समस्या आई!'));
+            .catch(function() {
+                alert('ऑर्डर सबमिट करने में समस्या आई!');
+            });
         }
     </script>
 </body>
