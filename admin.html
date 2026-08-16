@@ -2,35 +2,47 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIDDIQUI SAHAJ - काउंटर डैशबोर्ड</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-900 text-white p-4 min-h-screen">
-    <div class="max-w-5xl mx-auto">
+<body class="bg-slate-900 text-white p-4 sm:p-6 min-h-screen">
+    <div class="max-w-6xl mx-auto">
         <header class="flex justify-between items-center border-b border-slate-700 pb-4 mb-6">
             <div>
-                <h1 class="text-3xl font-black text-blue-400 tracking-wider">SIDDIQUI SAHAJ</h1>
-                <p class="text-xs text-slate-400 mt-1">लाइव प्रिंट एवं काउंटर डैशबोर्ड</p>
+                <h1 class="text-2xl sm:text-3xl font-black text-blue-400">SIDDIQUI SAHAJ</h1>
+                <p class="text-xs text-slate-400 mt-0.5">लाइव काउंटर एवं प्रिंट डैशबोर्ड</p>
             </div>
-            <button onclick="loadOrders()" class="bg-blue-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-500">रिफ्रेश करें</button>
+            <div class="flex items-center space-x-3">
+                <span class="flex items-center text-xs text-green-400 bg-green-950/80 border border-green-800 px-3 py-1.5 rounded-full font-bold">
+                    <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span> लाइव सिंक चालू
+                </span>
+                <button onclick="loadOrders()" class="bg-blue-600 hover:bg-blue-500 text-xs px-3 py-1.5 rounded font-bold">रिफ्रेश</button>
+            </div>
         </header>
 
         <div class="bg-slate-800 rounded-xl overflow-hidden shadow-2xl border border-slate-700">
-            <table class="w-full text-left text-sm">
-                <thead class="bg-slate-700 text-slate-300 uppercase text-xs">
-                    <tr>
-                        <th class="p-4">टोकन</th>
-                        <th class="p-4">नाम</th>
-                        <th class="p-4">फाइल</th>
-                        <th class="p-4">पेज</th>
-                        <th class="p-4">राशि</th>
-                        <th class="p-4">एक्शन</th>
-                    </tr>
-                </thead>
-                <tbody id="orderTable">
-                    <!-- ऑर्डर्स यहाँ लोड होंगे -->
-                </tbody>
-            </table>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-700/80 text-slate-300 uppercase text-xs">
+                        <tr>
+                            <th class="p-3.5">टोकन</th>
+                            <th class="p-3.5">समय</th>
+                            <th class="p-3.5">ग्राहक</th>
+                            <th class="p-3.5">फाइल</th>
+                            <th class="p-3.5">प्रकार</th>
+                            <th class="p-3.5">पेज × कॉपी</th>
+                            <th class="p-3.5">कुल बिल</th>
+                            <th class="p-3.5 text-center">एक्शन</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderTable" class="divide-y divide-slate-700">
+                        <tr>
+                            <td colspan="8" class="p-8 text-center text-slate-400">ऑर्डर्स लोड हो रहे हैं...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -40,30 +52,42 @@
                 .then(res => res.json())
                 .then(data => {
                     const table = document.getElementById('orderTable');
-                    table.innerHTML = '';
-                    if (data.length === 0) {
-                        table.innerHTML = '<tr><td colspan="6" class="p-10 text-center text-slate-500">कोई ऑर्डर नहीं आया है</td></tr>';
+                    if (!data || data.length === 0) {
+                        table.innerHTML = '<tr><td colspan="8" class="p-10 text-center text-slate-500">अभी कोई नया ऑर्डर नहीं आया है।</td></tr>';
                         return;
                     }
+                    table.innerHTML = '';
                     data.forEach(order => {
+                        const typeBadge = order.printType === 'color' 
+                            ? '<span class="bg-pink-900/60 text-pink-300 border border-pink-700 px-2 py-0.5 rounded text-[11px] font-bold">कलर</span>'
+                            : '<span class="bg-slate-700 text-slate-300 border border-slate-600 px-2 py-0.5 rounded text-[11px] font-bold">B&W</span>';
+
                         table.innerHTML += `
-                            <tr class="border-b border-slate-700 hover:bg-slate-750">
-                                <td class="p-4 font-bold text-yellow-400">#${order.tokenNo}</td>
-                                <td class="p-4">${order.customerName}</td>
-                                <td class="p-4 truncate max-w-[150px]">${order.originalName}</td>
-                                <td class="p-4">${order.totalPages}</td>
-                                <td class="p-4 font-bold text-green-400">₹${order.totalAmount}</td>
-                                <td class="p-4">
-                                    <a href="/api/download/${order.fileId}" target="_blank" class="bg-green-600 px-3 py-1 rounded text-xs font-bold hover:bg-green-500">डाउनलोड</a>
+                            <tr class="hover:bg-slate-750 transition">
+                                <td class="p-3.5 font-black text-yellow-400 text-base">#${order.tokenNo}</td>
+                                <td class="p-3.5 text-xs text-slate-400">${order.createdAt || '-'}</td>
+                                <td class="p-3.5">
+                                    <div class="font-bold text-white">${order.customerName}</div>
+                                    <div class="text-xs text-slate-400">${order.customerPhone}</div>
+                                </td>
+                                <td class="p-3.5 text-xs text-slate-300 max-w-[140px] truncate" title="${order.originalName}">${order.originalName}</td>
+                                <td class="p-3.5">${typeBadge}</td>
+                                <td class="p-3.5 font-bold">${order.totalPages}P × ${order.copies}</td>
+                                <td class="p-3.5 font-black text-green-400 text-base">₹${order.totalAmount}</td>
+                                <td class="p-3.5 text-center">
+                                    <a href="/api/download/${order.fileId}" target="_blank" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold inline-block shadow">
+                                        🖨️ डाउनलोड
+                                    </a>
                                 </td>
                             </tr>
                         `;
                     });
                 })
-                .catch(err => console.error("Error:", err));
+                .catch(err => console.error("Sync Error:", err));
         }
-        // हर 5 सेकंड में ऑटो-रिफ्रेश
-        setInterval(loadOrders, 5000);
+
+        // हर 4 सेकंड में ऑटोमैटिकली रिफ्रेश
+        setInterval(loadOrders, 4000);
         loadOrders();
     </script>
 </body>
