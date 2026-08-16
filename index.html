@@ -8,13 +8,11 @@
 </head>
 <body class="bg-gray-100 p-4 font-sans max-w-md mx-auto min-h-screen flex flex-col justify-center">
     <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-200">
-        <!-- दुकान का नाम -->
         <div class="text-center mb-6">
             <h1 class="text-2xl font-black text-blue-700 tracking-wide uppercase">SIDDIQUI SAHAJ</h1>
             <p class="text-xs font-semibold text-gray-500 mt-1">डिजिटल प्रिंट एवं फोटोकॉपी सेवा</p>
         </div>
 
-        <!-- अपलोड फॉर्म -->
         <div id="uploadSection" class="space-y-4">
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase mb-1">आपका नाम</label>
@@ -27,16 +25,16 @@
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">डॉक्यूमेंट चुनें (PDF / इमेज)</label>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">डॉक्यूमेंट चुनें (PDF / फोटो)</label>
                 <input type="file" id="docFile" accept=".pdf,image/*" class="w-full p-2 border border-dashed rounded-lg bg-gray-50 text-sm">
             </div>
 
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">प्रिंट टाइप</label>
-                    <select id="printType" class="w-full p-2.5 border rounded-lg text-sm bg-white">
-                        <option value="bw_single">B&W (₹2/पेज)</option>
-                        <option value="color">Color (₹10/पेज)</option>
+                    <select id="printType" class="w-full p-2.5 border rounded-lg text-sm bg-white font-medium">
+                        <option value="bw_single">B&W (₹5 / पेज)</option>
+                        <option value="color">Color (₹10 / पेज)</option>
                     </select>
                 </div>
                 <div>
@@ -50,10 +48,9 @@
             </button>
         </div>
 
-        <!-- बिल व पेमेंट -->
         <div id="billSection" class="hidden mt-6 pt-4 border-t space-y-4">
             <div class="bg-blue-50 p-4 rounded-xl space-y-2 text-sm border border-blue-100">
-                <div class="flex justify-between text-gray-600"><span>फाइल का नाम:</span><span id="billFileName" class="font-medium truncate max-w-[150px]">-</span></div>
+                <div class="flex justify-between text-gray-600"><span>फाइल:</span><span id="billFileName" class="font-medium truncate max-w-[150px]">-</span></div>
                 <div class="flex justify-between text-gray-600"><span>कुल पेज:</span><span id="billPages" class="font-bold text-gray-900">0</span></div>
                 <div class="flex justify-between text-gray-600"><span>कुल कॉपियां:</span><span id="billCopies" class="font-bold text-gray-900">1</span></div>
                 <div class="flex justify-between text-lg font-black text-blue-900 border-t border-blue-200 pt-2 mt-2">
@@ -67,7 +64,6 @@
             </button>
         </div>
 
-        <!-- टोकन रसीद -->
         <div id="successSection" class="hidden text-center py-4 space-y-3">
             <div class="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">✓</div>
             <h2 class="text-xl font-bold text-gray-800">भुगतान सफल रहा!</h2>
