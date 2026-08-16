@@ -50,20 +50,38 @@
             </button>
         </div>
 
-        <!-- Step 2: Bill Summary -->
+        <!-- Step 2: Bill & Payment Section -->
         <div id="billSection" class="hidden space-y-4 pt-4 border-t border-gray-200">
-            <h3 class="font-bold text-gray-800 text-sm border-b pb-2">बिल विवरण (Bill Summary)</h3>
-            <div class="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
-                <div class="flex justify-between text-gray-600"><span>फाइल का नाम:</span> <span id="billFileName" class="font-semibold text-gray-800 truncate max-w-[150px]"></span></div>
-                <div class="flex justify-between text-gray-600"><span>कुल पेज:</span> <span id="billPages" class="font-bold text-blue-600"></span></div>
-                <div class="flex justify-between text-gray-600"><span>कॉपियां:</span> <span id="billCopies" class="font-semibold"></span></div>
-                <div class="flex justify-between text-base font-bold text-gray-900 border-t pt-2 mt-2">
+            <h3 class="font-bold text-gray-800 text-sm border-b pb-2">बिल एवं भुगतान विवरण</h3>
+            
+            <div class="bg-gray-50 p-3.5 rounded-lg space-y-2 text-sm">
+                <div class="flex justify-between text-gray-600"><span>फाइल:</span> <span id="billFileName" class="font-semibold text-gray-800 truncate max-w-[140px]"></span></div>
+                <div class="flex justify-between text-gray-600"><span>कुल पेज × कॉपियां:</span> <span id="billPages" class="font-bold text-blue-600"></span></div>
+                <div class="flex justify-between text-base font-bold text-gray-900 border-t pt-2">
                     <span>कुल राशि:</span> <span id="billTotal" class="text-green-600 text-lg"></span>
                 </div>
             </div>
 
+            <!-- Payment Method Selection -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">भुगतान का माध्यम चुनें</label>
+                <select id="paymentMode" onchange="togglePaymentMode()" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-green-500">
+                    <option value="upi">ऑनलाइन UPI (QR कोड स्कैन करें)</option>
+                    <option value="cash">काउंटर पर नकद (Cash at Counter)</option>
+                </select>
+            </div>
+
+            <!-- UPI QR Code Box -->
+            <div id="upiBox" class="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center space-y-3">
+                <p class="text-xs font-bold text-slate-700">PhonePe / GPay / Paytm से स्कैन करें</p>
+                <div class="flex justify-center">
+                    <img id="qrImage" src="" alt="UPI QR Code" class="w-44 h-44 border-2 border-slate-300 rounded-lg p-1 bg-white shadow-sm">
+                </div>
+                <p class="text-[11px] text-slate-500">स्कैन करने पर बिल की सही राशि अपने-आप भर जाएगी।</p>
+            </div>
+
             <button onclick="confirmOrder()" id="confirmBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg text-sm shadow transition">
-                ऑर्डर कन्फर्म करें (सबमिट)
+                ऑर्डर और भुगतान कन्फर्म करें
             </button>
         </div>
 
@@ -80,6 +98,10 @@
     </div>
 
     <script>
+        // अपनी दुकान की UPI ID यहाँ बदलें:
+        const SHOP_UPI_ID = "9415445067@ptsbi"; 
+        const SHOP_NAME = "SIDDIQUI SAHAJ";
+
         let currentOrderData = null;
 
         function uploadDocument() {
@@ -110,10 +132,12 @@
                 if (data.success) {
                     currentOrderData = data;
                     document.getElementById('billFileName').innerText = data.originalName;
-                    document.getElementById('billPages').innerText = data.totalPages + ' पेज';
-                    document.getElementById('billCopies').innerText = data.copies;
+                    document.getElementById('billPages').innerText = data.totalPages + ' पेज × ' + data.copies;
                     document.getElementById('billTotal').innerText = '₹' + data.totalAmount;
                     
+                    // Dynamic UPI QR Code जेनरेट करें
+                    generateQR(data.totalAmount);
+
                     document.getElementById('billSection').classList.remove('hidden');
                 } else {
                     alert('समस्या: ' + (data.error || 'फाइल प्रोसेस नहीं हो सकी'));
@@ -124,6 +148,22 @@
                 uploadBtn.disabled = false;
                 alert('सर्वर से संपर्क नहीं हो पाया!');
             });
+        }
+
+        function generateQR(amount) {
+            const upiUrl = upi://pay?pa=${SHOP_UPI_ID}&pn=${encodeURIComponent(SHOP_NAME)}&am=${amount}&cu=INR;
+            const qrApi = https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)};
+            document.getElementById('qrImage').src = qrApi;
+        }
+
+        function togglePaymentMode() {
+            const mode = document.getElementById('paymentMode').value;
+            const upiBox = document.getElementById('upiBox');
+            if (mode === 'cash') {
+                upiBox.classList.add('hidden');
+            } else {
+                upiBox.classList.remove('hidden');
+            }
         }
 
         function confirmOrder() {
@@ -141,7 +181,8 @@
                 totalPages: currentOrderData.totalPages,
                 totalAmount: currentOrderData.totalAmount,
                 printType: currentOrderData.printType,
-                copies: currentOrderData.copies
+                copies: currentOrderData.copies,
+                paymentMode: document.getElementById('paymentMode').value
             };
 
             fetch('/api/confirm-order', {
