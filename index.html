@@ -3,157 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIDDIQUI SAHAJ - प्रिंट सेवा</title>
+    <title>SIDDIQUI SAHAJ - प्रिंट एवं फोटोकॉपी सेवा</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-4 font-sans max-w-md mx-auto min-h-screen flex flex-col justify-center">
-    <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-200">
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 font-sans">
+    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl max-w-md w-full border border-slate-200">
+        
+        <!-- Header -->
         <div class="text-center mb-6">
-            <h1 class="text-2xl font-black text-blue-700 tracking-wide uppercase">SIDDIQUI SAHAJ</h1>
-            <p class="text-xs font-semibold text-gray-500 mt-1">डिजिटल प्रिंट एवं फोटोकॉपी सेवा</p>
+            <h1 class="text-2xl font-black text-blue-700 tracking-wide">SIDDIQUI SAHAJ</h1>
+            <p class="text-xs text-gray-500 mt-1">ऑनलाइन प्रिंट एवं फोटोकॉपी काउंटर</p>
         </div>
 
+        <!-- Step 1: Upload Form -->
         <div id="uploadSection" class="space-y-4">
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">आपका नाम</label>
-                <input type="text" id="custName" placeholder="अपना नाम दर्ज करें" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                <label class="block text-xs font-bold text-gray-700 mb-1">आपका नाम</label>
+                <input type="text" id="custName" placeholder="उदा. राहुल कुमार" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">मोबाइल नंबर (वैकल्पिक)</label>
-                <input type="tel" id="custPhone" placeholder="मोबाइल नंबर" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                <label class="block text-xs font-bold text-gray-700 mb-1">मोबाइल नंबर</label>
+                <input type="tel" id="custPhone" placeholder="10 अंकों का नंबर" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">डॉक्यूमेंट चुनें (PDF / फोटो)</label>
-                <input type="file" id="docFile" accept=".pdf,image/*" class="w-full p-2 border border-dashed rounded-lg bg-gray-50 text-sm">
+                <label class="block text-xs font-bold text-gray-700 mb-1">प्रिंट का प्रकार</label>
+                <select id="printType" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="bw_single">ब्लैक & व्हाइट (₹5 प्रति पेज)</option>
+                    <option value="color">कलर प्रिंट (₹10 प्रति पेज)</option>
+                </select>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">प्रिंट टाइप</label>
-                    <select id="printType" class="w-full p-2.5 border rounded-lg text-sm bg-white font-medium">
-                        <option value="bw_single">B&W (₹5 / पेज)</option>
-                        <option value="color">Color (₹10 / पेज)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">कॉपियां</label>
-                    <input type="number" id="copies" value="1" min="1" class="w-full p-2.5 border rounded-lg text-sm">
-                </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">कॉपियों की संख्या</label>
+                <input type="number" id="copies" value="1" min="1" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
 
-            <button onclick="calculateBill()" id="btnCalculate" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition">
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">PDF या डॉक्यूमेंट चुनें</label>
+                <input type="file" id="fileInput" accept=".pdf,image/*" class="w-full border border-dashed border-blue-400 bg-blue-50 rounded-lg p-3 text-xs text-gray-700 cursor-pointer">
+            </div>
+
+            <button onclick="uploadDocument()" id="uploadBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm shadow transition">
                 पेज गिनें और बिल देखें
             </button>
         </div>
 
-        <div id="billSection" class="hidden mt-6 pt-4 border-t space-y-4">
-            <div class="bg-blue-50 p-4 rounded-xl space-y-2 text-sm border border-blue-100">
-                <div class="flex justify-between text-gray-600"><span>फाइल:</span><span id="billFileName" class="font-medium truncate max-w-[150px]">-</span></div>
-                <div class="flex justify-between text-gray-600"><span>कुल पेज:</span><span id="billPages" class="font-bold text-gray-900">0</span></div>
-                <div class="flex justify-between text-gray-600"><span>कुल कॉपियां:</span><span id="billCopies" class="font-bold text-gray-900">1</span></div>
-                <div class="flex justify-between text-lg font-black text-blue-900 border-t border-blue-200 pt-2 mt-2">
-                    <span>कुल राशि:</span>
-                    <span>₹<span id="billAmount">0</span></span>
+        <!-- Step 2: Bill Summary -->
+        <div id="billSection" class="hidden space-y-4 pt-4 border-t border-gray-200">
+            <h3 class="font-bold text-gray-800 text-sm border-b pb-2">बिल विवरण (Bill Summary)</h3>
+            <div class="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
+                <div class="flex justify-between text-gray-600"><span>फाइल का नाम:</span> <span id="billFileName" class="font-semibold text-gray-800 truncate max-w-[150px]"></span></div>
+                <div class="flex justify-between text-gray-600"><span>कुल पेज:</span> <span id="billPages" class="font-bold text-blue-600"></span></div>
+                <div class="flex justify-between text-gray-600"><span>कॉपियां:</span> <span id="billCopies" class="font-semibold"></span></div>
+                <div class="flex justify-between text-base font-bold text-gray-900 border-t pt-2 mt-2">
+                    <span>कुल राशि:</span> <span id="billTotal" class="text-green-600 text-lg"></span>
                 </div>
             </div>
 
-            <button onclick="payAndSubmit()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-md transition">
-                ₹<span id="btnPayAmount">0</span> का ऑनलाइन भुगतान करें
+            <button onclick="confirmOrder()" id="confirmBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg text-sm shadow transition">
+                ऑर्डर कन्फर्म करें (सबमिट)
             </button>
         </div>
 
-        <div id="successSection" class="hidden text-center py-4 space-y-3">
-            <div class="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">✓</div>
-            <h2 class="text-xl font-bold text-gray-800">भुगतान सफल रहा!</h2>
-            <p class="text-xs text-gray-500">आपकी फाइल <b>SIDDIQUI SAHAJ</b> काउंटर पर भेज दी गई है।</p>
-            
-            <div class="bg-yellow-50 border-2 border-yellow-400 rounded-xl p-4 my-3">
-                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">आपका टोकन नंबर</p>
-                <p id="tokenDisplay" class="text-5xl font-black text-gray-900 mt-1">#101</p>
-            </div>
-            <p class="text-xs text-gray-600">कृपया काउंटर पर यह टोकन नंबर दिखाकर अपना प्रिंट लें।</p>
+        <!-- Step 3: Success Token -->
+        <div id="successSection" class="hidden text-center py-6 space-y-3">
+            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-2xl font-black">✓</div>
+            <h2 class="text-xl font-bold text-gray-800">ऑर्डर सफलतापूर्वक दर्ज हुआ!</h2>
+            <p class="text-xs text-gray-500">आपका टोकन नंबर:</p>
+            <div id="tokenDisplay" class="text-4xl font-black text-blue-600 tracking-wider">#---</div>
+            <p class="text-xs text-gray-600 bg-yellow-50 p-2.5 rounded border border-yellow-200">कृपया काउंटर पर जाकर अपना टोकन नंबर बताएं और प्रिंट प्राप्त करें।</p>
+            <button onclick="location.reload()" class="mt-4 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-300">नया प्रिंट दें</button>
         </div>
+
     </div>
 
     <script>
-        var calculatedData = null;
+        let currentOrderData = null;
 
-        function calculateBill() {
-            var fileInput = document.getElementById("docFile");
-            if (!fileInput.files || fileInput.files.length === 0) {
-                alert("कृपया एक फाइल (PDF या फोटो) चुनें!");
+        function uploadDocument() {
+            const fileInput = document.getElementById('fileInput');
+            if (!fileInput.files[0]) {
+                alert('कृपया कोई फाइल चुनें!');
                 return;
             }
 
-            var formData = new FormData();
-            formData.append("document", fileInput.files[0]);
-            formData.append("printType", document.getElementById("printType").value);
-            formData.append("copies", document.getElementById("copies").value);
+            const uploadBtn = document.getElementById('uploadBtn');
+            uploadBtn.innerText = 'गिनती हो रही है... कृपया रुकें';
+            uploadBtn.disabled = true;
 
-            var btn = document.getElementById("btnCalculate");
-            btn.innerText = "पेज गिने जा रहे हैं...";
-            btn.disabled = true;
+            const formData = new FormData();
+            formData.append('document', fileInput.files[0]);
+            formData.append('printType', document.getElementById('printType').value);
+            formData.append('copies', document.getElementById('copies').value);
 
-            fetch("/api/upload-and-calculate", { method: "POST", body: formData })
-                .then(function(res) { return res.json(); })
-                .then(function(data) {
-                    btn.innerText = "पेज गिनें और बिल देखें";
-                    btn.disabled = false;
-                    calculatedData = data;
-
-                    if (data.success) {
-                        document.getElementById("billFileName").innerText = data.originalName;
-                        document.getElementById("billPages").innerText = data.totalPages;
-                        document.getElementById("billCopies").innerText = data.copies;
-                        document.getElementById("billAmount").innerText = data.totalAmount;
-                        document.getElementById("btnPayAmount").innerText = data.totalAmount;
-                        document.getElementById("billSection").classList.remove("hidden");
-                    } else {
-                        alert("त्रुटि: " + (data.error || "पेज गिनने में समस्या आई"));
-                    }
-                })
-                .catch(function(err) {
-                    btn.innerText = "पेज गिनें और बिल देखें";
-                    btn.disabled = false;
-                    alert("सर्वर से संपर्क नहीं हो पाया!");
-                });
-        }
-
-        function payAndSubmit() {
-            if (!calculatedData) return;
-            var confirmPay = confirm("SIDDIQUI SAHAJ को ₹" + calculatedData.totalAmount + " का भुगतान पूरा करें?");
-            if (!confirmPay) return;
-
-            var payload = {
-                fileId: calculatedData.fileId,
-                originalName: calculatedData.originalName,
-                totalPages: calculatedData.totalPages,
-                printType: calculatedData.printType,
-                copies: calculatedData.copies,
-                totalAmount: calculatedData.totalAmount,
-                customerName: document.getElementById("custName").value || "ग्राहक",
-                customerPhone: document.getElementById("custPhone").value || ""
-            };
-
-            fetch("/api/confirm-order", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+            fetch('/api/upload-and-calculate', {
+                method: 'POST',
+                body: formData
             })
-            .then(function(res) { return res.json(); })
-            .then(function(result) {
-                if (result.success) {
-                    document.getElementById("uploadSection").classList.add("hidden");
-                    document.getElementById("billSection").classList.add("hidden");
-                    document.getElementById("tokenDisplay").innerText = "#" + result.order.tokenNo;
-                    document.getElementById("successSection").classList.remove("hidden");
+            .then(res => res.json())
+            .then(data => {
+                uploadBtn.innerText = 'पेज गिनें और बिल देखें';
+                uploadBtn.disabled = false;
+
+                if (data.success) {
+                    currentOrderData = data;
+                    document.getElementById('billFileName').innerText = data.originalName;
+                    document.getElementById('billPages').innerText = data.totalPages + ' पेज';
+                    document.getElementById('billCopies').innerText = data.copies;
+                    document.getElementById('billTotal').innerText = '₹' + data.totalAmount;
+                    
+                    document.getElementById('billSection').classList.remove('hidden');
+                } else {
+                    alert('समस्या: ' + (data.error || 'फाइल प्रोसेस नहीं हो सकी'));
                 }
             })
-            .catch(function(err) {
-                alert("ऑर्डर सबमिट करने में समस्या आई!");
+            .catch(err => {
+                uploadBtn.innerText = 'पेज गिनें और बिल देखें';
+                uploadBtn.disabled = false;
+                alert('सर्वर से संपर्क नहीं हो पाया!');
             });
+        }
+
+        function confirmOrder() {
+            if (!currentOrderData) return;
+
+            const confirmBtn = document.getElementById('confirmBtn');
+            confirmBtn.innerText = 'ऑर्डर भेजा जा रहा है...';
+            confirmBtn.disabled = true;
+
+            const payload = {
+                customerName: document.getElementById('custName').value.trim() || 'ग्राहक',
+                customerPhone: document.getElementById('custPhone').value.trim() || '-',
+                originalName: currentOrderData.originalName,
+                fileId: currentOrderData.fileId,
+                totalPages: currentOrderData.totalPages,
+                totalAmount: currentOrderData.totalAmount,
+                printType: currentOrderData.printType,
+                copies: currentOrderData.copies
+            };
+
+            fetch('/api/confirm-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    document.getElementById('uploadSection').classList.add('hidden');
+                    document.getElementById('billSection').classList.add('hidden');
+                    document.getElementById('tokenDisplay').innerText = '#' + res.order.tokenNo;
+                    document.getElementById('successSection').classList.remove('hidden');
+                } else {
+                    alert('ऑर्डर दर्ज नहीं हो सका');
+                }
+            })
+            .catch(() => alert('ऑर्डर सबमिट करने में समस्या आई!'));
         }
     </script>
 </body>
